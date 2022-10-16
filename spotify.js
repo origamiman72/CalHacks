@@ -113,7 +113,7 @@ app.get('/callback', function(req, res) {
       const spotifyApi = getSpotifyApi(serverId, userId);
       spotifyApi.getMe().then(
           function(data) { user_tokens[serverId][userId].id = data.body.id },
-          function(err) { console.log('Something went wrong!', err); });
+          function(err) { console.log('Could not get username', err); });
 
       console.log(user_tokens)
       console.log("ACCESS TOKEN" + access_token)
@@ -202,6 +202,7 @@ async function getPlaylistHelper(spotifyApi, playlistOwner, playlistName) {
             const allPlaylists = data.body.items;
             const matchingNames =
                 allPlaylists.filter((item) => item.name === playlistName);
+            console.log(matchingNames);
             if (matchingNames === null || matchingNames.length === 0) {
               return null;
             }
@@ -243,6 +244,10 @@ async function addToPlaylist(serverId, userId, songName, playlistName, owner,
   getPlaylistHelper(spotifyApi, playlistOwner, playlistName)
       .then(
           (playlist) => {
+            if (playlist === null) {
+              interaction.reply("Could not find playlist");
+              return;
+            }
             searchTracksHelper(spotifyApi, songName)
                 .then(
                     (song) => {
