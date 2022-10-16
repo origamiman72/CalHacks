@@ -29,10 +29,20 @@ const slashCommands = [
             .addStringOption(option =>
                                  option.setName('playlist')
                                      .setDescription('The name of the playlist')
-                                     .setRequired(true)),
+                                     .setRequired(true))
+            .addStringOption(option =>
+                                 option.setName('owner')
+                                     .setDescription('The name of the playlist')
+                                     .setRequired(false)),
     async execute(interaction) {
-      console.log('received command');
-      await interaction.reply('yeet')
+      const user = interaction.user.id;
+      const guild = interaction.guild.id;
+      const songName = interaction.options.getString('song');
+      const playlistName = interaction.options.getString('playlist');
+      const owner = interaction.options.getString('owner');
+      await spotify_bot.addToPlaylist(guild, user, songName, playlistName,
+                                      owner === null ? user : owner,
+                                      interaction);
     }
   },
   {
@@ -41,9 +51,9 @@ const slashCommands = [
         'Login to spotify'),
     async execute(interaction) {
       const user = interaction.user.id
-      const guild = interaction.guild.id
+      const guild = interaction.guild.id;
       const login_url = spotify_bot.getLoginUrl(guild, user);
-      await interaction.reply(login_url)
+      await interaction.reply(login_url);
     }
   },
   {
@@ -57,9 +67,8 @@ const slashCommands = [
                               .setDescription('The name and artist of the song')
                               .setRequired(true)),
     async execute(interaction) {
-      const user = interaction.user.id
-      const guild = interaction.guild.id
-      const login_url = spotify_bot.getLoginUrl(guild, user);
+      const user = interaction.user.id;
+      const guild = interaction.guild.id;
       await spotify_bot.searchTracks(
           guild, user, interaction.options.getString('song'), interaction)
     }
@@ -77,9 +86,8 @@ const slashCommands = [
                                            .setDescription('description')
                                            .setRequired(false)),
     async execute(interaction) {
-      const user = interaction.user.id
-      const guild = interaction.guild.id
-      const login_url = spotify_bot.getLoginUrl(guild, user);
+      const user = interaction.user.id;
+      const guild = interaction.guild.id;
       await spotify_bot.createPlaylist(
           guild, user, interaction.options.getString('name'),
           interaction.options.getString('description'), interaction)
@@ -100,11 +108,9 @@ const slashCommands = [
     async execute(interaction) {
       const user = interaction.user.id
       const guild = interaction.guild.id
-      const login_url = spotify_bot.getLoginUrl(guild, user);
       const playlistName = interaction.options.getString('name')
       const owner = interaction.options.getString('owner');
-      await spotify_bot.getPlaylist(guild, user,
-                                    interaction.options.getString('name'),
+      await spotify_bot.getPlaylist(guild, user, playlistName,
                                     owner === null ? user : owner, interaction)
     }
   },

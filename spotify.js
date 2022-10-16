@@ -151,7 +151,7 @@ app.listen(8888);
 
 async function searchTracksHelper(spotifyApi, song) {
   return spotifyApi.searchTracks(song).then(
-      function(data) { return data.body.tracks.items[0].external_urls.spotify },
+      function(data) { return data.body.tracks.items[0]; },
       function(err) {
         console.log(err);
         throw err;
@@ -161,11 +161,14 @@ async function searchTracksHelper(spotifyApi, song) {
 async function searchTracks(serverId, userId, song, interaction) {
   const spotifyApi = getSpotifyApi(serverId, userId);
   searchTracksHelper(spotifyApi, song)
-      .then((url) => { interaction.reply('Found ' + url); },
-            (err) => {
-              console.log(err);
-              interaction.reply("Could not find song.");
-            });
+      .then(
+          (song) => {
+            interaction.reply('Found ' + song.external_urls.spotify);
+          },
+          (err) => {
+            console.log(err);
+            interaction.reply("Could not find song.");
+          });
 };
 
 async function createPlaylist(serverId, userId, playlistName, description,
@@ -191,15 +194,14 @@ async function getPlaylistHelper(spotifyApi, playlistOwner, playlistName) {
             const allPlaylists = data.body.items;
             const matchingNames =
                 allPlaylists.filter((item) => item.name === playlistName);
-            if (matchingNames === null) {
+            if (matchingNames === null || matchingNames.length === 0) {
               return null;
             }
             const selectedPlaylist = matchingNames[0];
 
             // Get a playlist
             return spotifyApi.getPlaylist(selectedPlaylist.id)
-                .then(function(
-                          data) { return data.body.external_urls.spotify; },
+                .then(function(data) { return data.body; },
                       function(err) {
                         console.log(err);
                         return null;
@@ -214,18 +216,50 @@ async function getPlaylistHelper(spotifyApi, playlistOwner, playlistName) {
 async function getPlaylist(serverId, userId, playlistName, owner, interaction) {
   const spotifyApi = getSpotifyApi(serverId, userId);
 
-  console.log("owner" + owner)
-  console.log(user_tokens)
   const playlistOwner = getUserId(serverId, owner);
-  console.log(playlistOwner)
 
   getPlaylistHelper(spotifyApi, playlistOwner, playlistName).then((data) => {
     if (data === null) {
       interaction.reply("Could not find playlist");
     } else {
-      interaction.reply(data)
+      interaction.reply(data.external_urls.spotify)
     }
   }, (err) => console.log(err));
+};
+
+async function addToPlaylist(serverId, userId, songName, playlistName, owner,
+                             interaction) {
+  const spotifyApi = getSpotifyApi(serverId, userId);
+
+  const playlistOwner = getUserId(serverId, owner);
+  getPlaylistHelper(spotifyApi, playlistOwner, playlistName)
+      .then(
+          (playlist) => {
+            searchTracksHelper(spotifyApi, songName)
+                .then(
+                    (song) => {
+                      console.log(song);
+                      spotifyApi.addTracksToPlaylist(playlist.id, [ song.uri ])
+                          .then(
+                              (data) => {
+                                interaction.reply(
+                                    "Added song to playlist! " +
+                                    playlist.external_urls.spotify);
+                              },
+                              (err) => {
+                                console.log(err);
+                                interaction.reply("Could not add song");
+                              });
+                    },
+                    (err) => {
+                      console.log(err);
+                      interaction.reply("Could not find song");
+                    });
+          },
+          (err) => {
+            console.log(err);
+            interaction.reply("Could not find playlist");
+          });
 };
 
 module.exports = {
@@ -233,4 +267,5 @@ module.exports = {
   searchTracks,
   createPlaylist,
   getPlaylist,
+  addToPlaylist,
 }
