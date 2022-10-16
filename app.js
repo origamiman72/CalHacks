@@ -30,18 +30,18 @@ const slashCommands = [
                                  option.setName('playlist')
                                      .setDescription('The name of the playlist')
                                      .setRequired(true))
-            .addStringOption(option =>
-                                 option.setName('owner')
-                                     .setDescription('The name of the playlist')
-                                     .setRequired(false)),
+            .addUserOption(option =>
+                               option.setName('owner')
+                                   .setDescription('The name of the playlist')
+                                   .setRequired(false)),
     async execute(interaction) {
       const user = interaction.user.id;
       const guild = interaction.guild.id;
       const songName = interaction.options.getString('song');
       const playlistName = interaction.options.getString('playlist');
-      const owner = interaction.options.getString('owner');
+      const owner = interaction.options.getUser('owner');
       await spotify_bot.addToPlaylist(guild, user, songName, playlistName,
-                                      owner === null ? user : owner,
+                                      owner === null ? user : owner.id,
                                       interaction);
     }
   },
@@ -102,16 +102,17 @@ const slashCommands = [
             .addStringOption(option => option.setName('name')
                                            .setDescription('The playlist name')
                                            .setRequired(true))
-            .addStringOption(option => option.setName('owner')
-                                           .setDescription('The playlist name')
-                                           .setRequired(false)),
+            .addUserOption(option => option.setName('owner')
+                                         .setDescription('The playlist name')
+                                         .setRequired(false)),
     async execute(interaction) {
-      const user = interaction.user.id
-      const guild = interaction.guild.id
+      const userId = interaction.user.id
+      const guildId = interaction.guild.id
       const playlistName = interaction.options.getString('name')
-      const owner = interaction.options.getString('owner');
-      await spotify_bot.getPlaylist(guild, user, playlistName,
-                                    owner === null ? user : owner, interaction)
+      const owner = interaction.options.getUser('owner');
+      await spotify_bot.getPlaylist(guildId, userId, playlistName,
+                                    owner === null ? userId : owner.id,
+                                    interaction)
     }
   },
   {
