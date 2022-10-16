@@ -11,8 +11,6 @@ const redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 
 const app = express();
 
-app.use(express.static(__dirname + '/public')).use(cors()).use(cookieParser());
-
 const getLoginUrl = function() {
   // your application requests authorization
   const scope = 'user-read-private ' +
