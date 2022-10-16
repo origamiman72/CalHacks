@@ -57,9 +57,10 @@ const commands = [
     {
         data: new SlashCommandBuilder()
         .setName('login')
-        .setDescription('Login to spotify')
+        .setDescription('Login to spotify'),
         async execute(interaction) {
-  login_url = spotify_bot.login_url() await interaction.reply(login_url)
+          login_url = spotify_bot.login_url(); 
+          await interaction.reply(login_url)
         }
     } 
 

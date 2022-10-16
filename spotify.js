@@ -38,14 +38,16 @@ let login_url = function() {
     + 'playlist-modify-private '
     + 'playlist-modify-public';
   
-  res.redirect('https://accounts.spotify.com/authorize?' +
+  login_url = 'https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
       client_id: client_id,
       scope: scope,
       redirect_uri: redirect_uri,
-    }));
-});
+    });
+
+  return login_url
+};
 
 app.get('/callback', function(req, res) {
 
