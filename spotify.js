@@ -2,16 +2,27 @@ const express = require('express'); // Express web server framework
 const request = require('request'); // "Request" library
 const cors = require('cors');
 const querystring = require('querystring');
-const cookieParser = require('cookie-parser');
 
 const {spotify_id, spotify_secret} = require('./config.json')
 const client_id = spotify_id;                          // Your client id
 const client_secret = spotify_secret;                  // Your secret
 const redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 
+const SpotifyAPI = require('spotify-web-api-node');
+
 const app = express();
 
-let user_tokens = {}
+// let user_tokens = {}
+let user_tokens = {
+  '1030995816212602981' : {
+    '129310898807504897' : {
+      access_token :
+          'BQDrre8CvTlvzO9bQifgcLPhXtv89tvja7KAVC8kDtkbSQtTnX1EJr4pG1AR3G_eaHIzC2FKpq-MqprA4vNNz_F6xAloESlbSFGYUJLLNhdEXIEcu4FL82WdZhcHnSBIEBM19eDxbdvx_SV-a0QjSoJx1KdWiOAMbhUyhrvn_3Guh63Y_R_FWr02HFVx6kP6G-_ST-LuJeLNTKvIi6RMbLuwRRzD1abpS3BOG1eTSDfUjS4ABgPHLy4O8HigPareBuiXE8knTP3EN1-nhbMbyMwvmPU',
+      refresh_token :
+          'AQBW53E0KXfTwZjLWbi3NycjlHYGHG4RsRfCAQzUFNaMUq80x6K5zfh6DhLU_20a37uGJYL4bo2--5kmjRuc-2fPP1CdgK8vPVmq2bxJDw5JzqRVipOklx4U4e9YVr9KxYM'
+    }
+  }
+}
 
 const getLoginUrl = function(serverId, userId) {
   // your application requests authorization
@@ -21,7 +32,6 @@ const getLoginUrl = function(serverId, userId) {
                 'playlist-modify-private ' +
                 'playlist-modify-public';
 
-  var state = 'aldskjf';
   const login_uri =
       'https://accounts.spotify.com/authorize?' + querystring.stringify({
         response_type : 'code',
@@ -99,6 +109,11 @@ app.get('/refresh_token', function(req, res) {
   // requesting access token from refresh token
   const refresh_token = req.query.refresh_token;
   let state = req.query.state || null;
+  if (state === null) {
+    res.redirect('https://www.youtube.com/watch?v=GHMjD0Lp5DY')
+    return;
+  }
+  state = JSON.parse(state)
   const authOptions = {
     url : 'https://accounts.spotify.com/api/token',
     headers : {
@@ -121,4 +136,54 @@ app.get('/refresh_token', function(req, res) {
 console.log('Listening on 8888');
 app.listen(8888);
 
-module.exports = {getLoginUrl}
+async function searchTracks(serverId, userId, song, interaction) {
+  var spotifyApi = new SpotifyAPI(
+      {accessToken : user_tokens[serverId][userId].access_token});
+  spotifyApi.searchTracks(song).then(
+      function(data) {
+        interaction.reply('Found ' +
+                          data.body.tracks.items[0].external_urls.spotify)
+      },
+      function(err) { console.log(err); });
+};
+
+async function createPlaylist(serverId, userId, playlistName, description,
+                              interaction) {
+  var spotifyApi = new SpotifyAPI(
+      {accessToken : user_tokens[serverId][userId].access_token});
+  spotifyApi
+      .createPlaylist(playlistName, {
+        'description' : description,
+        'public' : false,
+        'collaborative' : true
+      })
+      .then(function(data) { interaction.reply('Created playlist!'); },
+            function(err) {
+              console.log('Something went wrong!', err);
+              interaction.reply("Something went wrong!")
+            });
+};
+
+async function getPlaylist(serverId, userId, playlistName, interaction) {
+  var spotifyApi = new SpotifyAPI(
+      {accessToken : user_tokens[serverId][userId].access_token});
+
+  // Get a playlist
+  spotifyApi.getPlaylist(playlistName)
+      .then(
+          function(data) {
+            console.log('Some information about this playlist', data.body);
+            interaction.reply('found playlist bois');
+          },
+          function(err) {
+            console.log('Something went wrong!', err);
+            interaction.reply("Something went wrong!")
+          });
+};
+
+module.exports = {
+  getLoginUrl,
+  searchTracks,
+  createPlaylist,
+  getPlaylist,
+}

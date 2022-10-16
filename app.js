@@ -1,41 +1,23 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const Discord = require('discord.js')
-// const Spotify = require('spotify-web-api-node');
 const spotify_bot = require('./spotify.js')
 
-// require('dotenv').config();
 const {discordToken, discordClient, spotifyClient, spotifySecret} =
     require('./config.json');
-
-// var spotify = new Spotify({
-//   clientId : spotifyClient,
-//   clientSecret : spotifySecret,
-// });
 
 var SlashCommandBuilder = Discord.SlashCommandBuilder;
 
 const bot = new Discord.Client({intents : [ Discord.GatewayIntentBits.Guilds ]})
 const rest = new Discord.REST({version : '10'}).setToken(discordToken);
 
-// spotify.clientCredentialsGrant().then(
-//     function(data) {
-//       console.log('The access token expires in ' + data.body['expires_in']);
-//       console.log('The access token is ' + data.body['access_token']);
-//
-//       // Save the access token so that it's used in future calls
-//       spotify.setAccessToken(data.body['access_token']);
-//     },
-//     function(err) {
-//       console.log('Something went wrong when retrieving an access token',
-//       err);
-//     });
-
 bot.once('ready', () => {console.log('Ready!')})
 
 bot.commands = new Discord.Collection();
+
 const slashCommands = [
   {
+    // Add tracks to playlist
     data :
         new SlashCommandBuilder()
             .setName('add')
@@ -51,38 +33,95 @@ const slashCommands = [
     async execute(interaction) {
       console.log('received command');
       await interaction.reply('yeet')
-      // spotify.searchTracks('Love').then(
-      //     function(data) { console.log('Search by "Love"', data.body); },
-      //     function(err) { console.error(err); });
     }
   },
   {
+    // Log in user
     data : new SlashCommandBuilder().setName('login').setDescription(
         'Login to spotify'),
     async execute(interaction) {
-      const login_url = spotify_bot.getLoginUrl('1', '2');
+      const user = interaction.user.id
+      const guild = interaction.guild.id
+      const login_url = spotify_bot.getLoginUrl(guild, user);
       await interaction.reply(login_url)
+    }
+  },
+  {
+    // Search for track
+    data :
+        new SlashCommandBuilder()
+            .setName('search')
+            .setDescription('Search songs')
+            .addStringOption(
+                option => option.setName('song')
+                              .setDescription('The name and artist of the song')
+                              .setRequired(true)),
+    async execute(interaction) {
+      const user = interaction.user.id
+      const guild = interaction.guild.id
+      const login_url = spotify_bot.getLoginUrl(guild, user);
+      await spotify_bot.searchTracks(
+          guild, user, interaction.options.getString('song'), interaction)
+    }
+  },
+  {
+    // Create playlist
+    data :
+        new SlashCommandBuilder()
+            .setName('createplaylist')
+            .setDescription('Create Playlist')
+            .addStringOption(option => option.setName('name')
+                                           .setDescription('The playlist name')
+                                           .setRequired(true))
+            .addStringOption(option => option.setName('description')
+                                           .setDescription('description')
+                                           .setRequired(false)),
+    async execute(interaction) {
+      const user = interaction.user.id
+      const guild = interaction.guild.id
+      const login_url = spotify_bot.getLoginUrl(guild, user);
+      await spotify_bot.createPlaylist(
+          guild, user, interaction.options.getString('name'),
+          interaction.options.getString('description'), interaction)
+    }
+  },
+  {
+    // Get playlist
+    data :
+        new SlashCommandBuilder()
+            .setName('getplaylist')
+            .setDescription('Get Playlist')
+            .addStringOption(option => option.setName('name')
+                                           .setDescription('The playlist name')
+                                           .setRequired(true)),
+    async execute(interaction) {
+      const user = interaction.user.id
+      const guild = interaction.guild.id
+      const login_url = spotify_bot.getLoginUrl(guild, user);
+      await spotify_bot.createPlaylist(
+          guild, user, interaction.options.getString('name'), interaction)
+    }
+  },
+  {
+    // find user
+    data : new SlashCommandBuilder().setName('me').setDescription('who r u'),
+    async execute(interaction) {
+      const user = interaction.user.id
+      const guild = interaction.guild.id
+      console.log(user);
+      await interaction.reply(guild)
     }
   }
 
 ];
 
 const commands = [];
-// const commandsPath = path.join(__dirname, 'commands');
-// const commandFiles = fs.readdirSync(commandsPath).filter(file =>
-// file.endsWith('.js'));
 
 for (const command of slashCommands) {
   bot.commands.set(command.data.name, command);
   commands.push(command.data.toJSON());
 }
-// for (const file of commandFiles) {
-// 	const filePath = path.join(commandsPath, file);
-// 	const command = require(filePath);
-//     console.log(command.data.name)
-// 	bot.commands.set(command.data.name, command);
-// 	commands.push(command.data.toJSON());
-// }
+
 console.log(commands)
 rest.put(Discord.Routes.applicationCommands(discordClient), {body : commands})
     .then(data => console.log(
@@ -90,7 +129,8 @@ rest.put(Discord.Routes.applicationCommands(discordClient), {body : commands})
     .catch(console.error);
 
 bot.on('interactionCreate', async interaction => {
-  // if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isChatInputCommand())
+    return;
 
   const command = bot.commands.get(interaction.commandName);
   console.log(interaction.commandName)
@@ -108,69 +148,3 @@ bot.on('interactionCreate', async interaction => {
   }
 });
 bot.login(discordToken);
-
-// rest.put(
-// 	Discord.Routes.applicationCommands(clientId),
-// 	{ body: commands },
-// );
-
-// const Discord = require('discord.js');
-// let LeagueAPI = require('node-valorant-api');
-// require('dotenv').config(); //Uncomment this line to run locally
-// with dotenv package var champions =
-// require('./DDragon/champion.json'); var queues =
-// require('./DDragon/queues.json'); var profiles =
-// require('./DDragon/profileicon.json'); LeagueAPI = new
-// LeagueAPI(process.env.RIOT_API_KEY, Region.NA); const bot = new
-// Discord.Client();
-
-// bot.once('ready', () => {
-//     bot.user.setActivity('Use !help for Commands');
-//     console.log('Ready!');
-// });
-// bot.on('message', message => {
-//     if (message.content.toLowerCase().startsWith("!record")) {
-//         let messageParams = message.content.split(" ");
-//         let msg = messageParams.length == 3 ?
-//         record(messageParams[1], messageParams[2]) :
-//         record(messageParams[1]); msg.then((m) =>
-//         message.channel.send(m));
-//     }
-//     if (message.content.toLowerCase().startsWith("!live")) {
-//         let msg = live(message.content.substring(6));
-//         msg.then((m) => message.channel.send(m));
-//     }
-//     if (message.content.toLowerCase().startsWith("!rank")) {
-//         let msg = rank(message.content.substring(6));
-//         msg.then((m) => message.channel.send(m));
-//     }
-//     if (message.content.toLowerCase().startsWith("!recent")) {
-//         let msg = recent(message.content.substring(8));
-//         msg.then((m) => message.channel.send(m));
-//     }
-//     if (message.content.toLowerCase().startsWith("!op")) {
-//         message.channel.send(`https://op.gg/summoner/userName=${message.content.substring(4)}`);
-//     }
-//     if (message.content.toLowerCase().startsWith("!help")) {
-//         let e = new Discord.MessageEmbed()
-//             .setTitle("Commands for LeagueBot")
-//             .addFields(
-//                 { name: "!record [Summoner] [page = 0]", value:
-//                 "Returns Game Data on The Summoner's most
-//                 recently finished matches." }, { name: "!live
-//                 [Summoner]", value: "Returns Game Data on live
-//                 match if summoner is currently in match" }, {
-//                 name: "!recent [Summoner]", value: "Returns
-//                 in-game Statistics from the Summoner's most
-//                 recently completed match" }, { name: "!OP
-//                 [Summoner]", value: "Returns a link to the
-//                 Summoner's OP.GG page for further statisitcs" },
-//                 { name: "!help", value: "Show this page!" }
-//             )
-//             .setFooter("Developed by Arunan Thiviyanathan",
-//             "https://arunanthivi.com");
-//         message.channel.send(e);
-//     }
-// }
-
-// bot.login(process.env.DISCORD_KEY);
