@@ -1,34 +1,34 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const Discord = require('discord.js')
-const Spotify = require('spotify-web-api-node');
+//const Spotify = require('spotify-web-api-node');
 const spotify_bot = require('./spotify.js')
 
 // require('dotenv').config();
 const {discordToken, discordClient, spotifyClient, spotifySecret} =
     require('./config.json');
 
-var spotify = new Spotify({
-  clientId : spotifyClient,
-  clientSecret : spotifySecret,
-});
+//var spotify = new Spotify({
+//  clientId : spotifyClient,
+//  clientSecret : spotifySecret,
+//});
 
 var SlashCommandBuilder = Discord.SlashCommandBuilder;
 
 const bot = new Discord.Client({intents : [ Discord.GatewayIntentBits.Guilds ]})
 const rest = new Discord.REST({version : '10'}).setToken(discordToken);
 
-spotify.clientCredentialsGrant().then(
-    function(data) {
-      console.log('The access token expires in ' + data.body['expires_in']);
-      console.log('The access token is ' + data.body['access_token']);
-
-      // Save the access token so that it's used in future calls
-      spotify.setAccessToken(data.body['access_token']);
-    },
-    function(err) {
-      console.log('Something went wrong when retrieving an access token', err);
-    });
+//spotify.clientCredentialsGrant().then(
+//    function(data) {
+//      console.log('The access token expires in ' + data.body['expires_in']);
+//      console.log('The access token is ' + data.body['access_token']);
+//
+//      // Save the access token so that it's used in future calls
+//      spotify.setAccessToken(data.body['access_token']);
+//    },
+//    function(err) {
+//      console.log('Something went wrong when retrieving an access token', err);
+//    });
 
 bot.once('ready', () => {console.log('Ready!')})
 
@@ -59,7 +59,7 @@ const commands = [
         .setName('login')
         .setDescription('Login to spotify'),
         async execute(interaction) {
-          login_url = spotify_bot.login_url(); 
+          const login_url = spotify_bot.login_url();
           await interaction.reply(login_url)
         }
     } 

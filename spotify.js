@@ -9,21 +9,6 @@ const client_id = spotify_id; // Your client id
 const client_secret = spotify_secret; // Your secret
 const redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 
-/**
- * Generates a random string containing numbers and letters
- * @param  {number} length The length of the string
- * @return {string} The generated string
- */
-let generateRandomString = function(length) {
-  const text = '';
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-  for (let i = 0; i < length; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-};
-
 const app = express();
 
 app.use(express.static(__dirname + '/public'))
@@ -50,7 +35,6 @@ let login_url = function() {
 };
 
 app.get('/callback', function(req, res) {
-
   // your application requests refresh and access tokens
   // after checking the state parameter 
   // (except it doesn't, because I deleted the state parameter :3)
@@ -103,7 +87,6 @@ app.get('/callback', function(req, res) {
 });
 
 app.get('/refresh_token', function(req, res) {
-
   // requesting access token from refresh token
   const refresh_token = req.query.refresh_token;
   const authOptions = {
