@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const Discord = require('discord.js')
 const Spotify = require('spotify-web-api-node');
+const spotify_bot = require('./spotify.js')
 
 // require('dotenv').config();
 const { discordToken, discordClient, spotifyClient, spotifySecret} = require('./config.json');
@@ -58,7 +59,15 @@ const commands = [
                 });
         }
     },
-    
+    {
+        data: new SlashCommandBuilder()
+        .setName('login')
+        .setDescription('Login to spotify')
+        async execute(interaction) {
+            login_url = spotify_bot.login_url()
+            await interaction.reply(login_url)
+        }
+    } 
     
 
 ];
