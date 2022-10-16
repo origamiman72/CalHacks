@@ -111,14 +111,22 @@ app.get('/callback', function(req, res) {
       }
       // Get the authenticated user
       const spotifyApi = getSpotifyApi(serverId, userId);
+      console.log('peet')
       spotifyApi.getMe().then(
-          function(data) { user_tokens[serverId][userId].id = data.body.id },
-          function(err) { console.log('Could not get username', err); });
+          function(data) { 
+            console.log("DATA " + JSON.stringify(data)); 
+            user_tokens[serverId][userId].id = data.body.id;
+            console.log(user_tokens);
+            console.log("ACCESS TOKEN" + access_token);
+            console.log("REFRESH TOKEN" + refresh_token);
+            res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+          },
+          function(err) {
+            console.log('Could not get username', err); 
+            res.redirect('https://www.youtube.com/watch?v=GHMjD0Lp5DY');
+            return;
+          });
 
-      console.log(user_tokens)
-      console.log("ACCESS TOKEN" + access_token)
-      console.log("REFRESH TOKEN" + refresh_token)
-      res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
     } else {
       res.redirect('https://www.youtube.com/watch?v=GHMjD0Lp5DY')
     }
@@ -223,7 +231,7 @@ async function getPlaylistHelper(spotifyApi, playlistOwner, playlistName) {
 }
 
 async function getPlaylist(serverId, userId, playlistName, owner, interaction) {
-  const spotifyApi = getSpotifyApi(serverId, userId);
+  const spotifyApi = getSpotifyApi(serverId, owner);
 
   const playlistOwner = getUserId(serverId, owner);
 
@@ -238,7 +246,7 @@ async function getPlaylist(serverId, userId, playlistName, owner, interaction) {
 
 async function addToPlaylist(serverId, userId, songName, playlistName, owner,
                              interaction) {
-  const spotifyApi = getSpotifyApi(serverId, userId);
+  const spotifyApi = getSpotifyApi(serverId, owner);
 
   const playlistOwner = getUserId(serverId, owner);
   getPlaylistHelper(spotifyApi, playlistOwner, playlistName)
