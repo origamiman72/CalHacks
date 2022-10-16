@@ -33,8 +33,6 @@ const rest = new Discord.REST({version : '10'}).setToken(discordToken);
 
 bot.once('ready', () => {console.log('Ready!')})
 
-// bot.commands = new Collection();
-
 bot.commands = new Discord.Collection();
 const slashCommands = [
   {
@@ -51,17 +49,18 @@ const slashCommands = [
                                      .setDescription('The name of the playlist')
                                      .setRequired(true)),
     async execute(interaction) {
-      console.log('received command')
-      spotify.searchTracks('Love').then(
-          function(data) { console.log('Search by "Love"', data.body); },
-          function(err) { console.error(err); });
+      console.log('received command');
+      await interaction.reply('yeet')
+      // spotify.searchTracks('Love').then(
+      //     function(data) { console.log('Search by "Love"', data.body); },
+      //     function(err) { console.error(err); });
     }
   },
   {
     data : new SlashCommandBuilder().setName('login').setDescription(
         'Login to spotify'),
     async execute(interaction) {
-      const login_url = spotify_bot.login_url();
+      const login_url = spotify_bot.getLoginUrl();
       await interaction.reply(login_url)
     }
   }
@@ -108,71 +107,70 @@ bot.on('interactionCreate', async interaction => {
     });
   }
 });
-console.log(discordToken)
-    // bot.login(discordToken);
+bot.login(discordToken);
 
-    // rest.put(
-    // 	Discord.Routes.applicationCommands(clientId),
-    // 	{ body: commands },
-    // );
+// rest.put(
+// 	Discord.Routes.applicationCommands(clientId),
+// 	{ body: commands },
+// );
 
-    // const Discord = require('discord.js');
-    // let LeagueAPI = require('node-valorant-api');
-    // require('dotenv').config(); //Uncomment this line to run locally
-    // with dotenv package var champions =
-    // require('./DDragon/champion.json'); var queues =
-    // require('./DDragon/queues.json'); var profiles =
-    // require('./DDragon/profileicon.json'); LeagueAPI = new
-    // LeagueAPI(process.env.RIOT_API_KEY, Region.NA); const bot = new
-    // Discord.Client();
+// const Discord = require('discord.js');
+// let LeagueAPI = require('node-valorant-api');
+// require('dotenv').config(); //Uncomment this line to run locally
+// with dotenv package var champions =
+// require('./DDragon/champion.json'); var queues =
+// require('./DDragon/queues.json'); var profiles =
+// require('./DDragon/profileicon.json'); LeagueAPI = new
+// LeagueAPI(process.env.RIOT_API_KEY, Region.NA); const bot = new
+// Discord.Client();
 
-    // bot.once('ready', () => {
-    //     bot.user.setActivity('Use !help for Commands');
-    //     console.log('Ready!');
-    // });
-    // bot.on('message', message => {
-    //     if (message.content.toLowerCase().startsWith("!record")) {
-    //         let messageParams = message.content.split(" ");
-    //         let msg = messageParams.length == 3 ?
-    //         record(messageParams[1], messageParams[2]) :
-    //         record(messageParams[1]); msg.then((m) =>
-    //         message.channel.send(m));
-    //     }
-    //     if (message.content.toLowerCase().startsWith("!live")) {
-    //         let msg = live(message.content.substring(6));
-    //         msg.then((m) => message.channel.send(m));
-    //     }
-    //     if (message.content.toLowerCase().startsWith("!rank")) {
-    //         let msg = rank(message.content.substring(6));
-    //         msg.then((m) => message.channel.send(m));
-    //     }
-    //     if (message.content.toLowerCase().startsWith("!recent")) {
-    //         let msg = recent(message.content.substring(8));
-    //         msg.then((m) => message.channel.send(m));
-    //     }
-    //     if (message.content.toLowerCase().startsWith("!op")) {
-    //         message.channel.send(`https://op.gg/summoner/userName=${message.content.substring(4)}`);
-    //     }
-    //     if (message.content.toLowerCase().startsWith("!help")) {
-    //         let e = new Discord.MessageEmbed()
-    //             .setTitle("Commands for LeagueBot")
-    //             .addFields(
-    //                 { name: "!record [Summoner] [page = 0]", value:
-    //                 "Returns Game Data on The Summoner's most
-    //                 recently finished matches." }, { name: "!live
-    //                 [Summoner]", value: "Returns Game Data on live
-    //                 match if summoner is currently in match" }, {
-    //                 name: "!recent [Summoner]", value: "Returns
-    //                 in-game Statistics from the Summoner's most
-    //                 recently completed match" }, { name: "!OP
-    //                 [Summoner]", value: "Returns a link to the
-    //                 Summoner's OP.GG page for further statisitcs" },
-    //                 { name: "!help", value: "Show this page!" }
-    //             )
-    //             .setFooter("Developed by Arunan Thiviyanathan",
-    //             "https://arunanthivi.com");
-    //         message.channel.send(e);
-    //     }
-    // }
+// bot.once('ready', () => {
+//     bot.user.setActivity('Use !help for Commands');
+//     console.log('Ready!');
+// });
+// bot.on('message', message => {
+//     if (message.content.toLowerCase().startsWith("!record")) {
+//         let messageParams = message.content.split(" ");
+//         let msg = messageParams.length == 3 ?
+//         record(messageParams[1], messageParams[2]) :
+//         record(messageParams[1]); msg.then((m) =>
+//         message.channel.send(m));
+//     }
+//     if (message.content.toLowerCase().startsWith("!live")) {
+//         let msg = live(message.content.substring(6));
+//         msg.then((m) => message.channel.send(m));
+//     }
+//     if (message.content.toLowerCase().startsWith("!rank")) {
+//         let msg = rank(message.content.substring(6));
+//         msg.then((m) => message.channel.send(m));
+//     }
+//     if (message.content.toLowerCase().startsWith("!recent")) {
+//         let msg = recent(message.content.substring(8));
+//         msg.then((m) => message.channel.send(m));
+//     }
+//     if (message.content.toLowerCase().startsWith("!op")) {
+//         message.channel.send(`https://op.gg/summoner/userName=${message.content.substring(4)}`);
+//     }
+//     if (message.content.toLowerCase().startsWith("!help")) {
+//         let e = new Discord.MessageEmbed()
+//             .setTitle("Commands for LeagueBot")
+//             .addFields(
+//                 { name: "!record [Summoner] [page = 0]", value:
+//                 "Returns Game Data on The Summoner's most
+//                 recently finished matches." }, { name: "!live
+//                 [Summoner]", value: "Returns Game Data on live
+//                 match if summoner is currently in match" }, {
+//                 name: "!recent [Summoner]", value: "Returns
+//                 in-game Statistics from the Summoner's most
+//                 recently completed match" }, { name: "!OP
+//                 [Summoner]", value: "Returns a link to the
+//                 Summoner's OP.GG page for further statisitcs" },
+//                 { name: "!help", value: "Show this page!" }
+//             )
+//             .setFooter("Developed by Arunan Thiviyanathan",
+//             "https://arunanthivi.com");
+//         message.channel.send(e);
+//     }
+// }
 
-    // bot.login(process.env.DISCORD_KEY);
+// bot.login(process.env.DISCORD_KEY);
