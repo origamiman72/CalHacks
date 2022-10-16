@@ -1,7 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js')
 var SpotifyWebApi = require('spotify-web-api-node');
-
-var spotify = new SpotifyWebApi();
+               
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('add')

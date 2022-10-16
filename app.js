@@ -4,10 +4,30 @@ const Discord = require('discord.js')
 const Spotify = require('spotify-web-api-node');
 
 // require('dotenv').config();
-const { token, clientId} = require('./config.json');
+const { discordToken, discordClient, spotifyClient, spotifySecret} = require('./config.json');
+
+var spotify = new Spotify({
+    clientId: spotifyClient,
+    clientSecret: spotifySecret,
+ });
+
+ var SlashCommandBuilder = Discord.SlashCommandBuilder;
 
 const bot = new Discord.Client({ intents: [Discord.GatewayIntentBits.Guilds] })
-const rest = new Discord.REST({ version: '10' }).setToken(token);
+const rest = new Discord.REST({ version: '10' }).setToken(discordToken);
+
+spotify.clientCredentialsGrant().then(
+    function(data) {
+      console.log('The access token expires in ' + data.body['expires_in']);
+      console.log('The access token is ' + data.body['access_token']);
+  
+      // Save the access token so that it's used in future calls
+      spotify.setAccessToken(data.body['access_token']);
+    },
+    function(err) {
+      console.log('Something went wrong when retrieving an access token', err);
+    }
+  );
 
 bot.once('ready', () => {
     console.log('Ready!')
@@ -16,39 +36,65 @@ bot.once('ready', () => {
 // bot.commands = new Collection();
 
 bot.commands = new Discord.Collection();
-const commands = [];
-const commandsPath = path.join(__dirname, 'commands');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+const commands = [
+    {
+        data: new SlashCommandBuilder()
+        .setName('add')
+        .setDescription('Add a song to the playlist')
+        .addStringOption(option => 
+            option.setName('song')
+                .setDescription('The name and artist of the song')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('playlist')
+                .setDescription('The name of the playlist')
+                .setRequired(true)),
+        async execute(interaction) {
+            spotify.searchTracks('Love')
+                .then(function(data) {
+                    console.log('Search by "Love"', data.body);
+                }, function(err) {
+                    console.error(err);
+                });
+        }
+    },
+    
+    
 
-for (const file of commandFiles) {
-	const filePath = path.join(commandsPath, file);
-	const command = require(filePath);
-    console.log(command.data.name)
-	bot.commands.set(command.data.name, command);
-	commands.push(command.data.toJSON());
-}
-rest.put(Discord.Routes.applicationCommands(clientId), { body: commands })
+];
+// const commandsPath = path.join(__dirname, 'commands');
+// const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+
+// for (const file of commandFiles) {
+// 	const filePath = path.join(commandsPath, file);
+// 	const command = require(filePath);
+//     console.log(command.data.name)
+// 	bot.commands.set(command.data.name, command);
+// 	commands.push(command.data.toJSON());
+// }
+console.log(commands)
+rest.put(Discord.Routes.applicationCommands(discordClient), { body: commands })
 	.then(data => console.log(`Successfully registered ${data.length} application commands.`))
 	.catch(console.error);
 
 
-bot.on('interactionCreate', async interaction => {
-    // if (!interaction.isChatInputCommand()) return;
+// bot.on('interactionCreate', async interaction => {
+//     // if (!interaction.isChatInputCommand()) return;
 
-    const command = bot.commands.get(interaction.commandName);
-    console.log(interaction.commandName)
+//     const command = bot.commands.get(interaction.commandName);
+//     console.log(interaction.commandName)
 
-    if (!command) return;
+//     if (!command) return;
 
-    try {
-        await command.execute(interaction);
-    } catch (error) {
-        console.error(error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-    }
-});
-    
-bot.login(token);
+//     try {
+//         await command.execute(interaction);
+//     } catch (error) {
+//         console.error(error);
+//         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+//     }
+// });
+console.log(discordToken)
+// bot.login(discordToken);
 
 
 // rest.put(
