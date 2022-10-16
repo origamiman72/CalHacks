@@ -1,0 +1,28 @@
+{
+  "name": "spotify_discordbot",
+  "version": "1.0.0",
+  "description": "Create Spotify Playlists from within Discord",
+  "main": "app.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ArunanThivi/CalHacks.git"
+  },
+  "keywords": [
+    "Spotify",
+    "Discord"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ArunanThivi/CalHacks/issues"
+  },
+  "homepage": "https://github.com/ArunanThivi/CalHacks#readme",
+  "dependencies": {
+    "discord.js": "^14.6.0",
+    "dotenv": "^16.0.3",
+    "spotify-web-api-node": "^5.0.2"
+  }
+}
