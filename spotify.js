@@ -24,6 +24,15 @@ let user_tokens = {
   }
 }
 
+const getSpotifyApi =
+    (serverId, userId) => {
+      return new SpotifyAPI(
+          {accessToken : user_tokens[serverId][userId].access_token});
+    }
+
+const getUserId =
+    (serverId, userId) => { return user_tokens[serverId][userId].id; }
+
 const getLoginUrl = function(serverId, userId) {
   // your application requests authorization
   const scope = 'user-read-private ' +
@@ -45,10 +54,6 @@ const getLoginUrl = function(serverId, userId) {
 };
 
 app.get('/callback', function(req, res) {
-  // your application requests refresh and access tokens
-  // after checking the state parameter
-  // (except it doesn't, because I deleted the state parameter :3)
-
   let state = req.query.state || null;
   if (state === null) {
     res.redirect('https://www.youtube.com/watch?v=GHMjD0Lp5DY')
@@ -94,6 +99,12 @@ app.get('/callback', function(req, res) {
         [userId] :
             {'access_token' : access_token, 'refresh_token' : refresh_token}
       };
+      // Get the authenticated user
+      const spotifyApi = getSpotifyApi(serverId, userId);
+      spotifyApi.getMe().then(
+          function(data) { user_tokens[serverId][userId].id = data.body.id },
+          function(err) { console.log('Something went wrong!', err); });
+
       console.log(user_tokens)
       console.log("ACCESS TOKEN" + access_token)
       console.log("REFRESH TOKEN" + refresh_token)
@@ -137,8 +148,7 @@ console.log('Listening on 8888');
 app.listen(8888);
 
 async function searchTracks(serverId, userId, song, interaction) {
-  var spotifyApi = new SpotifyAPI(
-      {accessToken : user_tokens[serverId][userId].access_token});
+  const spotifyApi = getSpotifyApi(serverId, userId);
   spotifyApi.searchTracks(song).then(
       function(data) {
         interaction.reply('Found ' +
@@ -149,8 +159,7 @@ async function searchTracks(serverId, userId, song, interaction) {
 
 async function createPlaylist(serverId, userId, playlistName, description,
                               interaction) {
-  var spotifyApi = new SpotifyAPI(
-      {accessToken : user_tokens[serverId][userId].access_token});
+  const spotifyApi = getSpotifyApi(serverId, userId);
   spotifyApi
       .createPlaylist(playlistName, {
         'description' : description,
@@ -164,21 +173,30 @@ async function createPlaylist(serverId, userId, playlistName, description,
             });
 };
 
-async function getPlaylist(serverId, userId, playlistName, interaction) {
-  var spotifyApi = new SpotifyAPI(
-      {accessToken : user_tokens[serverId][userId].access_token});
+async function getPlaylist(serverId, userId, playlistName, owner, interaction) {
+  const spotifyApi = getSpotifyApi(serverId, userId);
+
+  console.log(owner)
+  console.log(user_tokens)
+  const playlistOwner = getUserId(owner);
+  console.log(playlistOwner)
+
+  spotifyApi.getUserPlaylists(playlistOwner)
+      .then(function(data) { console.log('Retrieved playlists', data.body); },
+            function(err) { console.log('Something went wrong!', err); });
+  interaction.reply('check logs');
 
   // Get a playlist
-  spotifyApi.getPlaylist(playlistName)
-      .then(
-          function(data) {
-            console.log('Some information about this playlist', data.body);
-            interaction.reply('found playlist bois');
-          },
-          function(err) {
-            console.log('Something went wrong!', err);
-            interaction.reply("Something went wrong!")
-          });
+  // spotifyApi.getPlaylist(playlistName)
+  //     .then(
+  //         function(data) {
+  //           console.log('Some information about this playlist', data.body);
+  //           interaction.reply('found playlist bois');
+  //         },
+  //         function(err) {
+  //           console.log('Something went wrong!', err);
+  //           interaction.reply("Something went wrong!")
+  //         });
 };
 
 module.exports = {

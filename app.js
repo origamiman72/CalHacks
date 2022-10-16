@@ -93,13 +93,19 @@ const slashCommands = [
             .setDescription('Get Playlist')
             .addStringOption(option => option.setName('name')
                                            .setDescription('The playlist name')
-                                           .setRequired(true)),
+                                           .setRequired(true))
+            .addStringOption(option => option.setName('owner')
+                                           .setDescription('The playlist name')
+                                           .setRequired(false)),
     async execute(interaction) {
       const user = interaction.user.id
       const guild = interaction.guild.id
       const login_url = spotify_bot.getLoginUrl(guild, user);
-      await spotify_bot.createPlaylist(
-          guild, user, interaction.options.getString('name'), interaction)
+      const playlistName = interaction.options.getString('name')
+      const owner = interaction.options.getString('owner');
+      await spotify_bot.getPlaylist(guild, user,
+                                    interaction.options.getString('name'),
+                                    owner === null ? user : owner, interaction)
     }
   },
   {
