@@ -60,7 +60,7 @@ const slashCommands = [
     data : new SlashCommandBuilder().setName('login').setDescription(
         'Login to spotify'),
     async execute(interaction) {
-      const login_url = spotify_bot.getLoginUrl();
+      const login_url = spotify_bot.getLoginUrl('1', '2');
       await interaction.reply(login_url)
     }
   }
