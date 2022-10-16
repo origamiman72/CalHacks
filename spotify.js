@@ -97,26 +97,33 @@ app.get('/callback', function(req, res) {
                   function(error, response, body) { console.log(body); });
 
       // we can also pass the token to the browser to make requests from there
-      user_tokens[serverId][userId] = {
-        'access_token' : access_token,
-        'refresh_token' : refresh_token
-      }
-    };
-    // Get the authenticated user
-    const spotifyApi = getSpotifyApi(serverId, userId);
-    spotifyApi.getMe().then(
-        function(data) { user_tokens[serverId][userId].id = data.body.id },
-        function(err) { console.log('Something went wrong!', err); });
+      if (user_tokens.hasOwnProperty(serverId)) {
+        user_tokens[serverId][userId] = {
+          'access_token' : access_token,
+          'refresh_token' : refresh_token
+        };
 
-    console.log(user_tokens)
-    console.log("ACCESS TOKEN" + access_token)
-    console.log("REFRESH TOKEN" + refresh_token)
-    res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+      } else {
+        user_tokens[serverId] = {
+          [userId] :
+              {'access_token' : access_token, 'refresh_token' : refresh_token}
+        };
+      }
+      // Get the authenticated user
+      const spotifyApi = getSpotifyApi(serverId, userId);
+      spotifyApi.getMe().then(
+          function(data) { user_tokens[serverId][userId].id = data.body.id },
+          function(err) { console.log('Something went wrong!', err); });
+
+      console.log(user_tokens)
+      console.log("ACCESS TOKEN" + access_token)
+      console.log("REFRESH TOKEN" + refresh_token)
+      res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
     } else {
-    res.redirect('https://www.youtube.com/watch?v=GHMjD0Lp5DY')
+      res.redirect('https://www.youtube.com/watch?v=GHMjD0Lp5DY')
     }
-});
-//}
+  });
+  //}
 });
 
 app.get('/refresh_token', function(req, res) {
