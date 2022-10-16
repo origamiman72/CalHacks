@@ -89,7 +89,7 @@ const slashCommands = [
     // Get playlist
     data :
         new SlashCommandBuilder()
-            .setName('getplaylist')
+            .setName('getplaylist2')
             .setDescription('Get Playlist')
             .addStringOption(option => option.setName('name')
                                            .setDescription('The playlist name')

@@ -4,6 +4,7 @@ const cors = require('cors');
 const querystring = require('querystring');
 
 const {spotify_id, spotify_secret} = require('./config.json')
+let {user_tokens} = require('./user_tokens.json')
 const client_id = spotify_id;                          // Your client id
 const client_secret = spotify_secret;                  // Your secret
 const redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
@@ -13,16 +14,17 @@ const SpotifyAPI = require('spotify-web-api-node');
 const app = express();
 
 // let user_tokens = {}
-let user_tokens = {
-  '1030995816212602981' : {
-    '129310898807504897' : {
-      access_token :
-          'BQDrre8CvTlvzO9bQifgcLPhXtv89tvja7KAVC8kDtkbSQtTnX1EJr4pG1AR3G_eaHIzC2FKpq-MqprA4vNNz_F6xAloESlbSFGYUJLLNhdEXIEcu4FL82WdZhcHnSBIEBM19eDxbdvx_SV-a0QjSoJx1KdWiOAMbhUyhrvn_3Guh63Y_R_FWr02HFVx6kP6G-_ST-LuJeLNTKvIi6RMbLuwRRzD1abpS3BOG1eTSDfUjS4ABgPHLy4O8HigPareBuiXE8knTP3EN1-nhbMbyMwvmPU',
-      refresh_token :
-          'AQBW53E0KXfTwZjLWbi3NycjlHYGHG4RsRfCAQzUFNaMUq80x6K5zfh6DhLU_20a37uGJYL4bo2--5kmjRuc-2fPP1CdgK8vPVmq2bxJDw5JzqRVipOklx4U4e9YVr9KxYM'
-    }
-  }
-}
+// let user_tokens = {
+//  '1030995816212602981' : {
+//    '129310898807504897' : {
+//      access_token :
+//          'BQDrre8CvTlvzO9bQifgcLPhXtv89tvja7KAVC8kDtkbSQtTnX1EJr4pG1AR3G_eaHIzC2FKpq-MqprA4vNNz_F6xAloESlbSFGYUJLLNhdEXIEcu4FL82WdZhcHnSBIEBM19eDxbdvx_SV-a0QjSoJx1KdWiOAMbhUyhrvn_3Guh63Y_R_FWr02HFVx6kP6G-_ST-LuJeLNTKvIi6RMbLuwRRzD1abpS3BOG1eTSDfUjS4ABgPHLy4O8HigPareBuiXE8knTP3EN1-nhbMbyMwvmPU',
+//      refresh_token :
+//          'AQBW53E0KXfTwZjLWbi3NycjlHYGHG4RsRfCAQzUFNaMUq80x6K5zfh6DhLU_20a37uGJYL4bo2--5kmjRuc-2fPP1CdgK8vPVmq2bxJDw5JzqRVipOklx4U4e9YVr9KxYM'
+//    }
+//  }
+//}
+console.log(user_tokens);
 
 const getSpotifyApi =
     (serverId, userId) => {
@@ -147,14 +149,23 @@ app.get('/refresh_token', function(req, res) {
 console.log('Listening on 8888');
 app.listen(8888);
 
+async function searchTracksHelper(spotifyApi, song) {
+  return spotifyApi.searchTracks(song).then(
+      function(data) { return data.body.tracks.items[0].external_urls.spotify },
+      function(err) {
+        console.log(err);
+        throw err;
+      });
+}
+
 async function searchTracks(serverId, userId, song, interaction) {
   const spotifyApi = getSpotifyApi(serverId, userId);
-  spotifyApi.searchTracks(song).then(
-      function(data) {
-        interaction.reply('Found ' +
-                          data.body.tracks.items[0].external_urls.spotify)
-      },
-      function(err) { console.log(err); });
+  searchTracksHelper(spotifyApi, song)
+      .then((url) => { interaction.reply('Found ' + url); },
+            (err) => {
+              console.log(err);
+              interaction.reply("Could not find song.");
+            });
 };
 
 async function createPlaylist(serverId, userId, playlistName, description,
@@ -173,30 +184,48 @@ async function createPlaylist(serverId, userId, playlistName, description,
             });
 };
 
+async function getPlaylistHelper(spotifyApi, playlistOwner, playlistName) {
+  return spotifyApi.getUserPlaylists(playlistOwner)
+      .then(
+          async function(data) {
+            const allPlaylists = data.body.items;
+            const matchingNames =
+                allPlaylists.filter((item) => item.name === playlistName);
+            if (matchingNames === null) {
+              return null;
+            }
+            const selectedPlaylist = matchingNames[0];
+
+            // Get a playlist
+            return spotifyApi.getPlaylist(selectedPlaylist.id)
+                .then(function(
+                          data) { return data.body.external_urls.spotify; },
+                      function(err) {
+                        console.log(err);
+                        return null;
+                      });
+          },
+          function(err) {
+            console.log(err);
+            return null;
+          });
+}
+
 async function getPlaylist(serverId, userId, playlistName, owner, interaction) {
   const spotifyApi = getSpotifyApi(serverId, userId);
 
-  console.log(owner)
+  console.log("owner" + owner)
   console.log(user_tokens)
-  const playlistOwner = getUserId(owner);
+  const playlistOwner = getUserId(serverId, owner);
   console.log(playlistOwner)
 
-  spotifyApi.getUserPlaylists(playlistOwner)
-      .then(function(data) { console.log('Retrieved playlists', data.body); },
-            function(err) { console.log('Something went wrong!', err); });
-  interaction.reply('check logs');
-
-  // Get a playlist
-  // spotifyApi.getPlaylist(playlistName)
-  //     .then(
-  //         function(data) {
-  //           console.log('Some information about this playlist', data.body);
-  //           interaction.reply('found playlist bois');
-  //         },
-  //         function(err) {
-  //           console.log('Something went wrong!', err);
-  //           interaction.reply("Something went wrong!")
-  //         });
+  getPlaylistHelper(spotifyApi, playlistOwner, playlistName).then((data) => {
+    if (data === null) {
+      interaction.reply("Could not find playlist");
+    } else {
+      interaction.reply(data)
+    }
+  }, (err) => console.log(err));
 };
 
 module.exports = {
